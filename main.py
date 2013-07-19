@@ -16,12 +16,21 @@ from openpyxl.reader.excel import load_workbook
 from openpyxl.cell import Cell
 import sys
 
+filename = ''
 
+# directs to parsing functions for each file type
+def execute(fname):
+    if fname[-5:] == '.xlsx':
+        load_xlsx(fname)
+    else:
+        sys.exit()
 
-def execute():
-    sys.exit()
+# we should divide this into two functions
+#  - load_xlsx for making sure we can load the file and getting
+#    total # of rows and columns so user can choose WHERE fields
+#  - interpolate strings based on the data passed in
 
-def execute_xlsx(xlsxFile):
+def load_xlsx(xlsxFile):
     pre = ""
     post = ""
     statement = ""
@@ -35,10 +44,11 @@ def execute_xlsx(xlsxFile):
     wb = load_workbook(xlsxFile)
     sheetNames = wb.get_sheet_names() # sheetNames is Array of sheet names
     sheets = []
-    
+
+    # get the name of our sheets so we can refer to them as tables
     for i in range(0,len(sheetNames)):
-        print sheetNames[i]
-        print i
+        #DEBUG print sheetNames[i]
+        #DEBUG print i
         sheets.append(wb.get_sheet_by_name(sheetNames[i]))
 
     # at this point we have all worksheets stored in the sheets Array
@@ -74,30 +84,29 @@ def execute_xlsx(xlsxFile):
                     statement = statement + insert + sheetNames[i] + " (" + pre + post + "'" + str(sheets[i].cell(row=rIndex,column=cIndex).value) + "')\n"
                     post = "" # reset post every row
 
-    statement.replace("'BULK'", "BULK")
-    print statement
+    # else if operation = 3: #DELETE
+
+
     
 
-    print sheets[0].cell('A1').value
-    #print sheets[0].cell(row=1,column=1).value
+    statement = statement.replace("'NULL'", "NULL")
+    print statement
+
+    # DEBUG print sheets[0].cell('A1').value
+    # DEBUG print sheets[0].cell(row=1,column=1).value
         
-    print sheets[0]
-    print filename + ' is an xlsx'
-    
+    # DEBUG print sheets[0]
+    # DEBUG print filename + ' is an xlsx'
 
 def getFile():
     filename = askopenfilename()
-
-    if filename[-5:] == '.xlsx':
-        execute_xlsx(filename)
-    
     fileLabel.grid(row=0,columnspan=4)
-    go.grid(row=2,column=3)
     Radiobutton(root, text="UPDATE", variable=operation, value=1).grid(row=1,column=1)
     Radiobutton(root, text="INSERT", variable=operation, value=2).grid(row=2,column=1)
     Radiobutton(root, text="DELETE", variable=operation, value=3).grid(row=3,column=1)
+    go = Button(root, text="OK", command=execute(filename))
+    go.grid(row=2,column=3)
 
-filename = ''
 
 
 root = Tk() # root widget, only 1 per program!
@@ -107,8 +116,9 @@ f.grid_propagate(0)
 f.grid()
 
 fileLabel = Label(root, text=filename)
-go = Button(root, text="OK", command=execute)
 loadFile = Button(root, text="Load File", command=getFile).grid(row=1,columnspan=1)
+
+
 # WHEN WE WANT TO BULD EXIT:
 # def callback():
 #     sys.exit()
